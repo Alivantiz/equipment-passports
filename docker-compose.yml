@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: equip
+      POSTGRES_PASSWORD: equip123
+      POSTGRES_DB: equipdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data   # ← имя db_data
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://equip:equip123@db:5432/equipdb?schema=public
+      JWT_SECRET: supersecret_jwt_key
+      PORT: 8080
+      CORS_ORIGIN: http://localhost:5173
+    depends_on:
+      - db
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build: ./frontend
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  db_data:     # ← теперь совпадает
